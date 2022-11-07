@@ -1,10 +1,3 @@
-/*
-    Name: Dawit Mengistie
-    Class: CMSC 226
-    Professor: Koorosh Azhandeh
-    CRN: 21673
-    Due Date: 10/23/2022
- */
 
 /*
     Displays the main menu for the program
