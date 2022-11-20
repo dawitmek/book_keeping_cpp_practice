@@ -1,6 +1,6 @@
 booktitle=TTTTTTTTTTT;isbn=TTTTTTTTTTT;date=TTTTTTTTTT;author=TTTTTTTTTTT;publisher=TTTTTTTTTTT;quantity=20;wholesale=1111;retail=1111;
 booktitle=BBBBBBBBBBBB;isbn=BBBBBBBBBBBB;date=BBBBBBBBBB;author=BBBBBBBBBBBB;publisher=BBBBBBBBBBBB;quantity=20;wholesale=222222;retail=222222;
-booktitle=XXXXXXXXX;isbn=XXXXXXXXX;date=XXXXXXXXX;author=XXXXXXXXX;publisher=XXXXXXXXX;quantity=20;wholesale=3.33333e+06;retail=3;
+booktitle=XXXXXXXXX;isbn=XXXXXXXXX;date=XXXXXXXXX;author=XXXXXXXXX;publisher=XXXXXXXXX;quantity=20;wholesale=3.33;retail=3;
 booktitle=CLASS TEST;isbn=CLASS TEST;date=CLASS TEST;author=CLASS TEST;publisher=CLASS TEST;quantity=33;wholesale=33;retail=33;
 booktitle=;isbn=;date=;author=;publisher=;quantity=0;wholesale=0;retail=0;
 booktitle=;isbn=;date=;author=;publisher=;quantity=0;wholesale=0;retail=0;

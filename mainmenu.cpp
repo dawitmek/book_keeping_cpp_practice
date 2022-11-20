@@ -27,7 +27,7 @@ void addBook();
 void editBook();
 void deleteBook();
 
-void fileDataToStruct(int, string);
+void fileDataToClass(int, string);
 
 void findAndChangeMember(string, string, int);
 void editFile(string, string, string, int);
@@ -72,9 +72,73 @@ public:
     int getQty();
     double getWholesale();
     double getRetail();
+    bool bookMatch(char[]);
+    void delBook();
 };
 
+class Menus
+{
+private:
+    /* data */
+public:
+    Menus();
+    ~Menus();
+    void displayMainMenu();
+};
+
+Menus::Menus(/* args */) {}
+
+Menus::~Menus() {}
+
+void Menus::displayMainMenu()
+{
+    do
+    {
+        cout << "\tSerendipity Booksellers" << endl;
+        cout << "\t\tMain Menu" << endl
+             << endl;
+        cout << "\t1. Cashier Module" << endl;
+        cout << "\t2. Inventory Database Module" << endl;
+        cout << "\t3. Report Module" << endl;
+        cout << "\t4. Exit" << endl
+             << endl;
+
+        cout << "\tEnter Your Choice: ";
+        cin >> choice;
+
+        /* Loops if number isn't valid */
+        while (choice < 1 || choice > 4)
+        {
+            cout << "\n\n\tPlease enter a number in the range of 1 - 4" << endl
+                 << endl
+                 << "\tEnter Your Choice: ";
+            cin >> choice;
+        }
+
+        switch (choice)
+        {
+        case 1:
+            cashier();
+            break;
+        case 2:
+            invMenu();
+            break;
+        case 3:
+            reports();
+            break;
+        case 4:
+            cout << "\n\tYou selected item " << choice << '.' << endl
+                 << "\tGoodbye!\n\n";
+            break;
+        default:
+            break;
+        }
+    } while (choice != 4);
+}
+
 BookData allBooks[bookSize];
+
+Menus allMenus;
 
 int currQty[bookSize] = {};
 
@@ -119,54 +183,13 @@ int main()
             getline(invFile, currLine);
             if (currLine != "\0" || !currLine.empty())
             {
-                fileDataToStruct(i, currLine); // writes values to file
+                fileDataToClass(i, currLine); // writes values to file
             }
         }
     }
 
     /* Runs the code initially then loops if invalid input */
-    do
-    {
-        cout << "\tSerendipity Booksellers" << endl;
-        cout << "\t\tMain Menu" << endl
-             << endl;
-        cout << "\t1. Cashier Module" << endl;
-        cout << "\t2. Inventory Database Module" << endl;
-        cout << "\t3. Report Module" << endl;
-        cout << "\t4. Exit" << endl
-             << endl;
-
-        cout << "\tEnter Your Choice: ";
-        cin >> choice;
-
-        /* Loops if number isn't valid */
-        while (choice < 1 || choice > 4)
-        {
-            cout << "\n\n\tPlease enter a number in the range of 1 - 4" << endl
-                 << endl
-                 << "\tEnter Your Choice: ";
-            cin >> choice;
-        }
-
-        switch (choice)
-        {
-        case 1:
-            cashier();
-            break;
-        case 2:
-            invMenu();
-            break;
-        case 3:
-            reports();
-            break;
-        case 4:
-            cout << "\n\tYou selected item " << choice << '.' << endl
-                 << "\tGoodbye!\n\n";
-            break;
-        default:
-            break;
-        }
-    } while (choice != 4);
+    allMenus.displayMainMenu();
 
     return 0;
 }
@@ -200,7 +223,7 @@ int bookInfo(char isbn[14], char title[51], char author[31], char publisher[31],
          << "4. Publisher: " << publisher << endl
          << "5. Date Added: " << date << endl
          << "6. Quantity-On-Hand: " << qty << endl
-         << "7. Wholesale Cost: " << wholesale << endl
+         << "7. Wholesale Cost: " << setprecision(2) << fixed << wholesale << endl
          << "8. Retail Price:  " << retail << endl;
 
     return 0;
@@ -326,7 +349,7 @@ int invMenu()
     return 0;
 }
 
-void fileDataToStruct(int index, string str)
+void fileDataToClass(int index, string str)
 {
     const char *tempStr = str.c_str();
     char *newStr = new char[strlen(tempStr) + 1];
@@ -428,7 +451,7 @@ void addBook()
                     << ";author=" << allBooks[i].getAuthor()
                     << ";publisher=" << allBooks[i].getPub()
                     << ";quantity=" << allBooks[i].getQty()
-                    << ";wholesale=" << allBooks[i].getWholesale()
+                    << ";wholesale=" << setprecision(2) << fixed << allBooks[i].getWholesale()
                     << ";retail=" << allBooks[i].getRetail() << ";" << (i < 19 ? "\n" : "");
         }
         invFile.close();
@@ -450,33 +473,20 @@ void lookUpBook()
     cin.get(bookName, 52);
     strUpper(bookName);
 
-    string currLine;
-
-    invFile.close();
-    invFile.open(inventoryFileName, ios::out | ios::in);
-    // invFile.seekg(invFile.beg);
-    for (int i = 0; i < size(allBooks); i++)
+    for (BookData books : allBooks)
     {
-        char fileBookTitle[52] = {};
-        getline(invFile, currLine);
-
-        string temp(currLine.substr(currLine.find('=') + 1, (currLine.find(';')) - currLine.find('=') - 1));
-
-        temp.copy(fileBookTitle, 51); //
-
-        if (strstr(fileBookTitle, (bookName)))
+        if (books.bookMatch(bookName))
         {
             cin.sync();
-            cout << "\n\tIs " << fileBookTitle << " the book you're looking for?  (y/n)" << endl;
+            cout << "\n\tIs " << bookName << " the book you're looking for?  (y/n)" << endl;
             cin.get(answer);
             cin.sync();
 
             if (answer == 'y')
             {
-                bookInfo(allBooks[i].getISBN(), allBooks[i].getTitle(), allBooks[i].getAuthor(),
-                         allBooks[i].getPub(), allBooks[i].getDateAdded(), allBooks[i].getQty(),
-                         allBooks[i].getWholesale(), allBooks[i].getRetail());
-                invFile.close();
+                bookInfo(books.getISBN(), books.getTitle(), books.getAuthor(),
+                         books.getPub(), books.getDateAdded(), books.getQty(),
+                         books.getWholesale(), books.getRetail());
                 exit(0);
             }
             else
@@ -496,56 +506,30 @@ void editBook()
     int choice, newIntVal;
     double newDoubleVal;
 
-    char bookName[100],
-        answer;
+    char bookName[52] = {},
+         answer;
 
-    cout << endl
-         << "\tEnter name of the book name: ";
+    cout << "\n\tEnter name of the book name: ";
     cin.sync();
-    cin.get(bookName, 100);
+    cin.get(bookName, 52);
     strUpper(bookName);
 
-    string currLine;
-
-    invFile.seekg(invFile.beg);
-
-    for (int i = 0; i < size(allBooks); i++)
+    for (BookData books : allBooks)
     {
-        char fileBookTitle[51];
-        getline(invFile, currLine);
-        string temp(currLine.substr(currLine.find('=') + 1, (currLine.find(';')) - currLine.find('=') - 1));
-
-        temp.copy(fileBookTitle, 51);
-
-        if (strstr(fileBookTitle, bookName))
+        if (books.bookMatch(bookName))
         {
             cin.sync();
-            cout << "\n\tIs " << fileBookTitle << " the book you're looking for?  (y/n)" << endl;
+            cout << "\n\tIs " << bookName << " the book you're looking for?  (y/n)" << endl;
             cin.get(answer);
             cin.sync();
 
             if (answer == 'y')
             {
-                bookInfo(allBooks[i].getISBN(), allBooks[i].getTitle(), allBooks[i].getAuthor(),
-                         allBooks[i].getPub(), allBooks[i].getDateAdded(), allBooks[i].getQty(),
-                         allBooks[i].getWholesale(), allBooks[i].getRetail());
+                bookInfo(books.getISBN(), books.getTitle(), books.getAuthor(),
+                         books.getPub(), books.getDateAdded(), books.getQty(),
+                         books.getWholesale(), books.getRetail());
                 cout << "\tWhat do you want to change? ";
                 cin >> choice;
-
-                const char *tempStr = currLine.c_str();
-                char *newStr = new char[strlen(tempStr) + 1];
-                strcpy(newStr, tempStr);
-
-                char *token = strtok(newStr, ";");
-
-                while (token != NULL)
-                {
-                    string currToken(token),
-                        initStr = currToken.substr(0, currToken.find("=")),
-                        tokenVal = currToken.substr(currToken.find("=") + 1, size(currToken));
-
-                    token = strtok(NULL, ";");
-                }
 
                 char tempBookTitle[51] = {},
                      tempIsbn[14] = {},
@@ -564,7 +548,7 @@ void editBook()
                     cin.ignore();
                     cin.sync();
                     cin.get(tempIsbn, 14);
-                    allBooks[i].setISBN(tempIsbn);
+                    books.setISBN(tempIsbn);
 
                     break;
                 case 2:
@@ -572,49 +556,49 @@ void editBook()
                     cin.ignore();
                     cin.sync();
                     cin.get(tempBookTitle, 51);
-                    allBooks[i].setTitle(tempBookTitle);
+                    books.setTitle(tempBookTitle);
                     break;
                 case 3:
                     cout << "\tEnter new Author: ";
                     cin.ignore();
                     cin.sync();
                     cin.get(tempAuthor, 31);
-                    allBooks[i].setAuthor(tempAuthor);
+                    books.setAuthor(tempAuthor);
                     break;
                 case 4:
                     cout << "\tEnter new Publisher: ";
                     cin.ignore();
                     cin.sync();
                     cin.get(tempPublisher, 31);
-                    allBooks[i].setPub(tempPublisher);
+                    books.setPub(tempPublisher);
                     break;
                 case 5:
                     cout << "\tEnter new Date: ";
                     cin.ignore();
                     cin.sync();
                     cin.get(tempDateAdded, 11);
-                    allBooks[i].setDateAdded(tempDateAdded);
+                    books.setDateAdded(tempDateAdded);
                     break;
                 case 6:
                     cout << "\tEnter new Quantity: ";
                     cin.ignore();
                     cin.sync();
                     (cin >> newIntVal);
-                    allBooks[i].setQty(newIntVal);
+                    books.setQty(newIntVal);
                     break;
                 case 7:
                     cout << "\tEnter new Wholesale Cost: ";
                     cin.ignore();
                     cin.sync();
                     (cin >> newDoubleVal);
-                    allBooks[i].setWholesale(newDoubleVal);
+                    books.setWholesale(newDoubleVal);
                     break;
                 case 8:
                     cout << "\tEnter new Retail Price: ";
                     cin.ignore();
                     cin.sync();
                     (cin >> newDoubleVal);
-                    allBooks[i].setRetail(newDoubleVal);
+                    books.setRetail(newDoubleVal);
                     break;
 
                 default:
@@ -624,66 +608,56 @@ void editBook()
                     break;
                 }
 
-                invFile.close();
+                if (invFile.is_open())
+                    invFile.close();
+
                 invFile.open(inventoryFileName, ios::out);
 
                 for (int i = 0; i < bookSize; i++)
                 {
-                    invFile << "booktitle=" << allBooks[i].getTitle()
-                            << ";isbn=" << allBooks[i].getISBN()
-                            << ";date=" << allBooks[i].getDateAdded()
-                            << ";author=" << allBooks[i].getAuthor()
-                            << ";publisher=" << allBooks[i].getPub()
-                            << ";quantity=" << allBooks[i].getQty()
-                            << ";wholesale=" << allBooks[i].getWholesale()
-                            << ";retail=" << allBooks[i].getRetail() << ";" << (i < 19 ? "\n" : "");
+                    invFile << "booktitle=" << books.getTitle()
+                            << ";isbn=" << books.getISBN()
+                            << ";date=" << books.getDateAdded()
+                            << ";author=" << books.getAuthor()
+                            << ";publisher=" << books.getPub()
+                            << ";quantity=" << books.getQty()
+                            << ";wholesale=" << setprecision(2) << fixed << books.getWholesale()
+                            << ";retail=" << books.getRetail() << ";" << (i < 19 ? "\n" : "");
                 }
 
-                bookInfo(allBooks[i].getISBN(), allBooks[i].getTitle(), allBooks[i].getAuthor(),
-                         allBooks[i].getPub(), allBooks[i].getDateAdded(), allBooks[i].getQty(),
-                         allBooks[i].getWholesale(), allBooks[i].getRetail());
+                bookInfo(books.getISBN(), books.getTitle(), books.getAuthor(),
+                         books.getPub(), books.getDateAdded(), books.getQty(),
+                         books.getWholesale(), books.getRetail());
                 cout << "\tGoodbye!" << endl;
                 invFile.close();
                 exit(0);
             }
-        }
-        else
-        {
-            continue;
+            else
+            {
+                continue;
+            }
         }
     }
-    cout << "\tBook Not Found" << endl;
-    cout << "\n\tGoodbye!" << endl;
-    exit(0);
+    cout << "\n\tBook Not Found" << endl;
 }
 
 void deleteBook()
 {
-    char bookName[100],
+    char bookName[52],
         answer;
 
     cout << endl
          << "\tEnter name of the book name: ";
     cin.sync();
-    cin.get(bookName, 100);
+    cin.get(bookName, 52);
     strUpper(bookName);
 
-    string currLine;
-    invFile.close();
-    invFile.open(inventoryFileName, ios::out | ios::in);
-
-    for (int i = 0; i < size(allBooks); i++)
+    for (BookData books : allBooks)
     {
-        char fileBookTitle[52] = {};
-        getline(invFile, currLine);
-        string temp(currLine.substr(currLine.find('=') + 1, (currLine.find(';')) - currLine.find('=') - 1));
-
-        temp.copy(fileBookTitle, 51);
-
-        if (strstr(fileBookTitle, bookName))
+        if (books.bookMatch(bookName))
         {
             cin.sync();
-            cout << "\n\tIs " << allBooks[i].getTitle() << " the book you're looking for?  (y/n)" << endl;
+            cout << "\n\tIs " << books.getTitle() << " the book you're looking for?  (y/n)" << endl;
             cin.get(answer);
             cin.sync();
 
@@ -691,32 +665,28 @@ void deleteBook()
 
             if (answer == 'y')
             {
-                allBooks[i].setTitle(deleteArr);
-                allBooks[i].setISBN(deleteArr);
-                allBooks[i].setAuthor(deleteArr);
-                allBooks[i].setPub(deleteArr);
-                allBooks[i].setDateAdded(deleteArr);
-                allBooks[i].setQty(0);
-                allBooks[i].setWholesale(0);
-                allBooks[i].setRetail(0);
+                books.delBook();
 
-                invFile.close();
+                if (invFile.is_open())
+                    invFile.close();
+
                 invFile.open(inventoryFileName, ios::out);
                 invFile.seekg(invFile.beg);
 
                 for (int i = 0; i < bookSize; i++)
                 {
-                    invFile << "booktitle=" << allBooks[i].getTitle()
-                            << ";isbn=" << allBooks[i].getISBN()
-                            << ";date=" << allBooks[i].getDateAdded()
-                            << ";author=" << allBooks[i].getAuthor()
-                            << ";publisher=" << allBooks[i].getPub()
-                            << ";quantity=" << allBooks[i].getQty()
-                            << ";wholesale=" << allBooks[i].getWholesale()
-                            << ";retail=" << allBooks[i].getRetail() << ";" << (i < 19 ? "\n" : "");
+                    invFile << "booktitle=" << books.getTitle()
+                            << ";isbn=" << books.getISBN()
+                            << ";date=" << books.getDateAdded()
+                            << ";author=" << books.getAuthor()
+                            << ";publisher=" << books.getPub()
+                            << ";quantity=" << books.getQty()
+                            << ";wholesale=" << setprecision(2) << fixed << books.getWholesale()
+                            << ";retail=" << books.getRetail() << ";" << (i < 19 ? "\n" : "");
                 }
 
                 cout << "\tDeleted" << endl;
+                invFile.close();
                 exit(0);
             }
             else
@@ -987,8 +957,8 @@ void printListings(bool title, bool isbn, bool qtyBool, bool wholesaleBool, bool
                tempAuthor = auth ? "\tAuthor: " + charToString((allBooks[i].getAuthor())) + "\n" : "",
                tempPubl = pub ? "\tPublisher: " + charToString((allBooks[i].getPub())) + "\n" : "",
                tempQty = qtyBool ? "\tQuantity: " + to_string(allBooks[i].getQty()) + "\n" : "",
-               tempWhole = wholesaleBool ? "\tWholesale Price: " + to_string(allBooks[i].getWholesale()) + "\n" : "",
-               tempRetail = retailBool ? "\tRetail Price: " + to_string(allBooks[i].getRetail()) + "\n" : "";
+               tempWhole = wholesaleBool ? "\tWholesale Price: " + to_string(allBooks[i].getWholesale()).substr(0, to_string(allBooks[i].getWholesale()).find(".") + 3) + "\n" : "",
+               tempRetail = retailBool ? "\tRetail Price: " + to_string(allBooks[i].getRetail()).substr(0, to_string(allBooks[i].getRetail()).find(".") + 3) + "\n" : "";
 
         cout << tempTitle
              << tempIsbn
@@ -1017,7 +987,7 @@ void repWholesale()
     {
         totalWholesale += allBooks[i].getWholesale() * (double)allBooks[i].getQty();
     }
-    cout << "Total wholesale cost: " << totalWholesale << endl;
+    cout << "Total wholesale cost: " << setprecision(2) << fixed << totalWholesale << endl;
     cout << "Enter any key to continue..." << endl;
     cin.sync();
     cin.get();
@@ -1031,7 +1001,7 @@ void repRetail()
     {
         totalRetail += allBooks[i].getRetail() * (double)allBooks[i].getQty();
     }
-    cout << "Total retail cost: " << totalRetail << endl;
+    cout << "Total retail cost: " << setprecision(2) << fixed << totalRetail << endl;
     cout << "Enter any key to continue..." << endl;
     cin.sync();
     cin.get();
@@ -1089,13 +1059,13 @@ void repQty()
              << endl;
     }
     cout << "Enter any button to continue...";
+    cin.sync();
     cin.get();
     cin.sync();
 }
 
 void repCost()
 {
-
     int booksInInventory;
     for (int i = 0; i < size(allBooks); i++)
     {
@@ -1147,6 +1117,7 @@ void repCost()
              << endl;
     }
     cout << "Enter any button to continue...";
+    cin.sync();
     cin.get();
     cin.sync();
 }
@@ -1178,52 +1149,60 @@ void repAge()
         tempArr[i] = allBooks[i].getDateAdded();
         tempArrIndex[i] = i;
     }
-    string tempVal1 = "";
-    string tempVal2 = "";
 
-    for (int i = 0; i < booksInInventory; i++)
+    try
     {
-        small = i;
-        for (int j = i + 1; j < booksInInventory; j++)
+
+        for (int i = 0; i < booksInInventory; i++)
         {
-            tempVal1 = "";
-            tempVal2 = "";
-
-            string tempDateAtJ = charToString(allBooks[j].getDateAdded());
-            string tempDateAtSmall = charToString(allBooks[j].getDateAdded());
-            ;
-            if (stoi(tempDateAtJ.substr(size(tempDateAtJ) - 4, size(tempDateAtJ))) < stoi(tempDateAtSmall.substr(size(tempDateAtJ) - 4, size(tempDateAtJ))))
+            small = i;
+            for (int j = i + 1; j < booksInInventory; j++)
             {
-                small = j;
-            }
-            else if (stoi(tempDateAtJ.substr(0, 2)) < stoi(tempDateAtSmall.substr(0, 2)))
-            {
-                small = j;
-            }
-            else if (stoi(tempDateAtJ.substr(3, 5)) < stoi(tempDateAtSmall.substr(3, 5)))
-            {
-                small = j;
-            }
+                string tempDateAtJ = charToString(allBooks[j].getDateAdded());
+                string tempDateAtSmall = charToString(allBooks[j].getDateAdded());
+                ;
+                if (stoi(tempDateAtJ.substr(size(tempDateAtJ) - 4, size(tempDateAtJ))) < stoi(tempDateAtSmall.substr(size(tempDateAtJ) - 4, size(tempDateAtJ))))
+                {
+                    small = j;
+                }
+                else if (stoi(tempDateAtJ.substr(0, 2)) < stoi(tempDateAtSmall.substr(0, 2)))
+                {
+                    small = j;
+                }
+                else if (stoi(tempDateAtJ.substr(3, 5)) < stoi(tempDateAtSmall.substr(3, 5)))
+                {
+                    small = j;
+                }
 
-            temp = tempArr[i];
-            tempArr[i] = tempArr[small];
-            tempArr[small] = temp;
+                temp = tempArr[i];
+                tempArr[i] = tempArr[small];
+                tempArr[small] = temp;
 
-            tempIndex = tempArrIndex[i];
-            tempArrIndex[i] = tempArrIndex[small];
-            tempArrIndex[small] = tempIndex;
+                tempIndex = tempArrIndex[i];
+                tempArrIndex[i] = tempArrIndex[small];
+                tempArrIndex[small] = tempIndex;
+            }
+        }
+
+        for (int i = 0; i < booksInInventory; i++)
+        {
+            cout << "Title: " << allBooks[tempArrIndex[i]].getTitle()
+                 << "\nISBN: " << allBooks[tempArrIndex[i]].getISBN()
+                 << "\nQuantity On Hand: " << allBooks[tempArrIndex[i]].getQty()
+                 << "\nDate Added: " << allBooks[tempArrIndex[i]].getDateAdded() << endl
+                 << endl;
         }
     }
-
-    for (int i = 0; i < booksInInventory; i++)
+    catch (const std::exception &e)
     {
-        cout << "Title: " << allBooks[tempArrIndex[i]].getTitle()
-             << "\nISBN: " << allBooks[tempArrIndex[i]].getISBN()
-             << "\nQuantity On Hand: " << allBooks[tempArrIndex[i]].getQty()
-             << "\nDate Added: " << allBooks[tempArrIndex[i]].getDateAdded() << endl
-             << endl;
+        if (strstr(e.what(), "stoi"))
+        {
+            cerr << "\n\tError: Incorrect Date Formats\n"
+                 << endl;
+        }
     }
     cout << "Enter any button to continue...";
+    cin.sync();
     cin.get();
     cin.sync();
 }
@@ -1321,4 +1300,28 @@ double BookData::getWholesale()
 double BookData::getRetail()
 {
     return retail;
+}
+
+bool BookData::bookMatch(char title[])
+{
+    string bookTitleString(bookTitle),
+        titleString(title);
+    if (bookTitleString == titleString)
+    {
+        return true;
+    }
+    return false;
+}
+
+void BookData::delBook()
+{
+    char deleteArr[] = "";
+    strcpy(bookTitle, deleteArr);
+    strcpy(isbn, deleteArr);
+    strcpy(author, deleteArr);
+    strcpy(publisher, deleteArr);
+    strcpy(dateAdded, deleteArr);
+    qtyOnHand = 0;
+    wholesale = 0;
+    retail = 0;
 }
